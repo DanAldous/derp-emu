@@ -33,14 +33,14 @@ impl Sys {
         let key = KEY::new();
         let audio = AUDIO::new();
         let cart = CART::new();
-        let system = Sys {mfg_label: "dCHIP8".to_string(), cpu: cpu, ram: ram, gfx: gfx, key: key, audio: audio, cart: cart};
+        let system = Sys {mfg_label: "derp-CHIP8".to_string(), cpu: cpu, ram: ram, gfx: gfx, key: key, audio: audio, cart: cart};
         system
     }
 
-    pub fn exec(&self) {
-        let ram = &self.ram;
+    pub fn exec(&mut self) {
 
-        let op = self.cpu.next_op(ram);
+
+        self.cpu.exec(&self.ram);
 
     }
 

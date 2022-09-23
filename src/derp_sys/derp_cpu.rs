@@ -39,14 +39,15 @@ impl CPU {
         };
         return cpu;
     }
-    pub fn exec(&mut self, ram: &derp_ram::RAM) {
-        //self.op = self.next_op(ram);
-    }
-
-    pub fn next_op(&self, ram: &derp_ram::RAM) -> u16 {
+    fn next_op(&mut self, ram: &derp_ram::RAM) {
         let op1 = ram.get(self.pc);
         let op2 = ram.get(self.pc+1);
-        ((op1 as u16) << 8) | op2 as u16
+        self.op = ((op1 as u16) << 8) | op2 as u16;
+    }
+    pub fn exec(&mut self, ram: &derp_ram::RAM) {
+        self.next_op(ram);
+        self.debug();
+        //self.op = self.next_op(ram);
     }
 
     /*
@@ -270,8 +271,39 @@ impl CPU {
             {
                 _parent._snd.isNoisey();
                 sound_timer--;
+
+
+    V: [u8;16],
+    op: u16,
+    idx: u16,
+    pc: u16,
+    delay_timer: u16,
+    sound_timer: u16,
+    stack: [u16;16],
+    sp: u8,
+    key: [u8;16],
             }*/
 
+    pub fn debug(&self) {
+        println!("V     : {}", self.V[0].to_string());
+        println!("op    : {}", self.op);
+        println!("idx   : {}", self.idx);
+        println!("pc    : {}", self.pc);
+        println!("stack : {}", self.stack[0].to_string());
+        println!("sp    : {}", self.sp);
+        /*
+        let x: u16 = (UInt16)(Opcode & 0x0F00);
+        x >>= 8;
+        UInt16 y = (UInt16)(Opcode & 0x00F0);
+        y >>= 4;
+        UInt16 nnn = (UInt16)(Opcode & 0x0FFF);
+
+        System.Console.Write("Opcode: {0:X}\tStack[0]: {1:X}\t", Opcode, stack[0]);
+        System.Console.Write("x: {0:X}\ty: {1:X}\tnnn: {2:X}\t", x, y, nnn);
+        for (int i = 0; i < 16; i++)
+            System.Console.Write("V[{0:X}]:\t{1:X}\t", i, V[i]);
+        System.Console.Write("PC: {0:X}\tSP: {1:X}\tIndex: {2:X}\n", PC, sp, Index);*/
+    }
 }
 
     
