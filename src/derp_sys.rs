@@ -38,6 +38,10 @@ impl Sys {
     }
 
     pub fn exec(&self) {
+        let ram = &self.ram;
+
+        let op = self.cpu.next_op(ram);
+
     }
 
     pub fn reset(&self) {

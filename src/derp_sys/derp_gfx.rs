@@ -23,4 +23,40 @@ impl GFX {
         let index: usize = addr.into();
         self.address[index] = data;
     }
+    /*
+        public void exec()
+        {
+            if (dirty)
+            {
+                this.dirty = false;
+                for (int i = 0; i < 64; i++)
+                    for (int j = 0; j < 32; j++)
+                        xorPixel(i, j);
+
+            }
+            //TODO
+        }
+        public void stop()
+        {
+        }
+        public void clear()
+        {
+            for (int i = 0; i < (64 * 32); i++)
+                GFX[i] = 0x00;
+            dirty = true;
+        }
+        public Boolean isDirty()
+        {
+            return dirty;
+        }
+        public Byte pixelAt(int x, int y)
+        {
+            return GFX[x + (64 * y)];//beware the stride
+        }
+        public void xorPixel(int x, int y)
+        {
+            if ((GFX[x + (64 * y)] ^= 1) != 0)//just xor the bit
+                dirty = true;
+        } 
+     */
 }
