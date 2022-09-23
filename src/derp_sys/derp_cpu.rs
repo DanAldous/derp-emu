@@ -2,6 +2,7 @@
  *
  */
 
+use super::derp_ram;
 
 pub struct CPU {
     V: [u8;16],
@@ -18,9 +19,9 @@ pub struct CPU {
 impl CPU {
     pub fn new() -> CPU {
         let V:[u8; 16] = [0;16];
-        let op = 0;
+        let op:u16 = 0;
         let idx = 0;
-        let pc = 0x200;//start address, 512 decimal
+        let pc:u16 = 0x200;//start address, 512 decimal
         let dt = 0;
         let st = 0;
         let stack:[u16; 16] = [0x0000;16];
@@ -38,15 +39,14 @@ impl CPU {
         };
         return cpu;
     }
-    
-    fn op(&self, opcode: u8) {
-        if opcode == 0x0000 {
-            return;
-        } else if opcode == 0x0001 {
-            return;
-        } else if opcode == 0x0002 {
-            return;
-        }
+    pub fn exec(&mut self, mut ram: &derp_ram::RAM) {
+        self.op = self.next_op(ram);
+    }
+
+    fn next_op(&self, mut ram: &derp_ram::RAM) -> u16 {
+        let op1 = ram.get(self.pc);
+        let op2 = ram.get(self.pc+1);
+        ((op1 as u16) << 8) | op2 as u16
     }
 }
 
