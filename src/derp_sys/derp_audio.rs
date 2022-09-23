@@ -2,21 +2,22 @@
  *
  */
 
-pub struct IO {
+pub struct AUDIO {
     address: u8,
 }
 
-impl IO {
+impl AUDIO {
     fn get(&self, addr: u8) -> u8 {
         let index: usize = addr.into();
-        self.address[index]
+        //self.address[index]
+        return self.address;
     }
-    fn set(&self, addr: u8, data: u8) {
-        addr = data;
+    fn set(&mut self, addr: u8, data: u8) {
+        self.address = data;
     }
-    pub fn new() -> IO {
+    pub fn new() -> AUDIO {
         let addr: u8 = 0x0000;
-        let io = IO{address: addr};
-        return io;
+        let audio = AUDIO{address: addr};
+        return audio;
     }
 }
