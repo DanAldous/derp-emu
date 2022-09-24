@@ -26,13 +26,13 @@ pub struct Sys {
 }
 
 impl Sys {
-    pub fn new() -> Sys {
+    pub fn new(rom: String) -> Sys {
         let cpu = CPU::new();
         let ram = RAM::new();
         let gfx = GFX::new();
         let key = KEY::new();
         let audio = AUDIO::new();
-        let cart = CART::new();
+        let cart = CART::new(rom);
         let system = Sys {mfg_label: "derp-CHIP8".to_string(), cpu: cpu, ram: ram, gfx: gfx, key: key, audio: audio, cart: cart};
         system
     }
