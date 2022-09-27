@@ -13,13 +13,14 @@ use std::time::Duration;
 
 fn main() {
     let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video();
+    /*
     let video_subsystem = sdl_context.video().unwrap();
 
     let window = video_subsystem.window("DerpEMU Test", 800, 600)
         .position_centered()
         .build()
         .unwrap();
-
     let mut canvas = window.into_canvas().build().unwrap();
 
     canvas.set_draw_color(Color::RGB(0,255,255));
@@ -37,12 +38,12 @@ fn main() {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     break 'running
                 },
-                _ => {}
+                _=> {}
             }
         }
         canvas.present();
         ::std::thread::sleep(Duration::new(0,1_000_000_000u32 / 60));
-    }
+    }*/
     //pass card name to program here
     let rom_image = "assets/ibm.ch8".to_string();
     let mut system = Sys::new(rom_image);
