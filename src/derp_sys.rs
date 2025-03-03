@@ -38,9 +38,12 @@ impl Sys {
     }
 
     pub fn exec(&mut self) {
+        let cart_size = self.cart.getSize();
+        let cart_data = self.cart.getData();
+        self.ram.load_cart(cart_size, cart_data);
 
 
-        self.cpu.exec(&self.ram);
+        self.cpu.exec(&self.ram, &self.gfx);
 
     }
 

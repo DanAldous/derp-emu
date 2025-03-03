@@ -2,7 +2,9 @@
  *
  */
 
+//use super::*;
 use super::derp_ram;
+use super::derp_gfx;
 
 pub struct CPU {
     V: [u8;16],
@@ -39,25 +41,62 @@ impl CPU {
         };
         return cpu;
     }
-    fn next_op(&mut self, ram: &derp_ram::RAM) {
+    fn next_op(&mut self, ram: derp_ram::RAM) -> u16 {
+        let op1 = ram.get(self.pc);
+        let op2 = ram.get(self.pc+1);
+        ((op1 as u16) << 8) | op2 as u16
+    }
+    pub fn exec(&mut self, ram: &derp_ram::RAM, gfx: &derp_gfx::GFX) {
+        //self.next_op(ram);
+
+        self.debug();
+        println!("Init set, stepping in");
         let op1 = ram.get(self.pc);
         let op2 = ram.get(self.pc+1);
         self.op = ((op1 as u16) << 8) | op2 as u16;
-    }
-    pub fn exec(&mut self, ram: &derp_ram::RAM) {
-        self.next_op(ram);
-        self.debug();
         //self.op = self.next_op(ram);
+        self.debug();
+        println!("Second Instruction");
+        self.pc += 2;
+        
+        let op1 = ram.get(self.pc);
+        let op2 = ram.get(self.pc+1);
+        self.op = ((op1 as u16) << 8) | op2 as u16;
+        //self.op = self.next_op(ram);
+        self.debug();
+        let x:u16 = self.op & 0x0F00 >> 8;
+        let y:u16 = self.op & 0x00F0 >> 4;
+        let n:u16 = self.op & 0x000F;
+        let nn:u16 = self.op & 0x00FF;
+        let nnn:u16 = self.op & 0x0FFF;
+
+        match self.op & 0xF000 {
+            0x0000 => match nn {
+                0x00E0 => {
+                    //gfx.clear();
+                    self.V[0xF] = 1;
+                    self.pc +=2;
+                },
+                0x00EE => {
+                    self.sp -= 1;
+                    let szsp:usize = self.sp.into();
+                   self.pc = self.stack[szsp]; 
+                },
+                _ => println!("Fail"),
+            },
+            _ => println!("Fail"),
+
+        }
     }
 
     /*
-            UInt16 x = (UInt16)(Opcode & 0x0F00);
+            UInt16 x:u16 = (UInt16)(Opcode & 0x0F00);
             x >>= 8;
-            UInt16 y = (UInt16)(Opcode & 0x00F0);
+            UInt16 y:u16 = (UInt16)(Opcode & 0x00F0);
             y >>= 4;
-            UInt16 n = (UInt16)(Opcode & 0x000F);
-            UInt16 nn = (UInt16)(Opcode & 0x00FF);
-            UInt16 nnn = (UInt16)(Opcode & 0x0FFF);
+            UInt16 n:u16 = (UInt16)(Opcode & 0x000F);
+            UInt16 nn:u16 = (UInt16)(Opcode & 0x00FF);
+            UInt16 nnn:u16 = (UInt16)(Opcode & 0x0FFF);
 
             switch (Opcode & 0xF000)
             {
@@ -285,12 +324,12 @@ impl CPU {
             }*/
 
     pub fn debug(&self) {
-        println!("V     : {}", self.V[0].to_string());
-        println!("op    : {}", self.op);
-        println!("idx   : {}", self.idx);
-        println!("pc    : {}", self.pc);
-        println!("stack : {}", self.stack[0].to_string());
-        println!("sp    : {}", self.sp);
+        println!("V     : {:#06x}", self.V[0]);//.to_string());
+        println!("op    : {:#06x}", self.op);
+        println!("idx   : {:#06x}", self.idx);
+        println!("pc    : {:#06x}", self.pc);
+        println!("stack : {:#06x}", self.stack[0]);//.to_string());
+        println!("sp    : {:#06x}", self.sp);
         /*
         let x: u16 = (UInt16)(Opcode & 0x0F00);
         x >>= 8;

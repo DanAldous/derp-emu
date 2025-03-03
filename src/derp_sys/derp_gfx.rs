@@ -23,6 +23,16 @@ impl GFX {
         let index: usize = addr.into();
         self.address[index] = data;
     }
+    pub fn clear(&mut self) {
+        //clear screen
+        let mut i = 0;
+        let max = 64 * 32;
+        while i < max {
+            self.address[i] = 0x00;
+            i += 1;
+        }
+        self.dirty = true;
+    }
     /*
         public void exec()
         {
