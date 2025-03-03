@@ -24,21 +24,21 @@ impl ggez::event::EventHandler<GameError> for State {
 }
 
 fn main() {
-    let state = State{
-        dt: std::time::Duration::new(0,0),
-    };
+//    let state = State{
+//        dt: std::time::Duration::new(0,0),
+//    };
 
 
-    let c = conf::Conf::new();
-    let (ctx, event_loop) = ContextBuilder::new("hello_ggez", "awsome_person")
-        .default_conf(c)
-        .build()
-        .unwrap();
+//    let c = conf::Conf::new();
+//    let (ctx, event_loop) = ContextBuilder::new("hello_ggez", "awsome_person")
+//        .default_conf(c)
+//        .build()
+//        .unwrap();
 
-    event::run(ctx, event_loop, state);
+    //event::run(ctx, event_loop, state);
 
     //pass card name to program here
-    let rom_image = "assets/ibm.ch8".to_string();
+    let rom_image = "./assets/ibm.ch8".to_string();
     let mut system = Sys::new(rom_image);
     system.exec();
     println!("Hello, world!");

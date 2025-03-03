@@ -48,4 +48,12 @@ impl RAM {
             i+=1;
         }
     }
+    pub fn load_cart(&mut self, size:usize , data: Vec<u8>) {
+        let mut i = 0;
+        while i < size {
+            let idx = i + 0x200;
+            self.address[idx] = data[i];
+            i+=1;
+        }
+    }
 }
