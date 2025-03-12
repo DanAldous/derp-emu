@@ -64,10 +64,10 @@ impl CPU {
         self.op = ((op1 as u16) << 8) | op2 as u16;
         //self.op = self.next_op(ram);
         self.debug();
-        let x:u16 = self.op & 0x0F00 >> 8;
-        let y:u16 = self.op & 0x00F0 >> 4;
-        let n:u16 = self.op & 0x000F;
-        let nn:u16 = self.op & 0x00FF;
+        let   x:u16 = self.op & 0x0F00 >> 8;
+        let   y:u16 = self.op & 0x00F0 >> 4;
+        let   n:u16 = self.op & 0x000F;
+        let  nn:u16 = self.op & 0x00FF;
         let nnn:u16 = self.op & 0x0FFF;
 
         match self.op & 0xF000 {
