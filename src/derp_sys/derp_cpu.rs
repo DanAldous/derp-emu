@@ -64,127 +64,97 @@ impl CPU {
         self.op = ((op1 as u16) << 8) | op2 as u16;
         //self.op = self.next_op(ram);
         self.debug();
-        let   x:u16 = self.op & 0x0F00 >> 8;
-        let   y:u16 = self.op & 0x00F0 >> 4;
-        let   n:u16 = self.op & 0x000F;
-        let  nn:u16 = self.op & 0x00FF;
+        let   x:u8 = (self.op & 0x0F00 >> 8).try_into().unwrap();
+        let   y:u8 = (self.op & 0x00F0 >> 4).try_into().unwrap();
+        let   n:u8 = (self.op & 0x000F).try_into().unwrap();
+        let  nn:u8 = (self.op & 0x00FF).try_into().unwrap();
         let nnn:u16 = self.op & 0x0FFF;
 
         match self.op & 0xF000 {
             0x0000 => match nn {
-                0x00E0 => {
+                0x00E0 => { //clear screen
                     //gfx.clear();
                     self.V[0xF] = 1;
                     self.pc +=2;
                 },
-                0x00EE => {
+                0x00EE => { //return from sub
                     self.sp -= 1;
                     let szsp:usize = self.sp.into();
                    self.pc = self.stack[szsp]; 
                 },
                 _ => println!("Fail"),
             },
+            0x1000 => { //1NNN - jump to address NNN
+                self.pc = nnn;
+            },
+            0x2000 => { //2NNN - call subroutine at NNN
+                let tmpx:usize = self.sp.into(); 
+                self.sp += 1; 
+                self.stack[tmpx] = self.pc;
+                self.pc = nnn;
+            },
+            0x3000 => { //3XNN - skip next instruction if VX == NN
+                let tmpx:usize = x.into();
+                self.pc += if self.V[tmpx] == nn {4} else {2};
+            },
+            0x4000 => { //4XNN - skip next instruction if VX != NN
+                let tmpx:usize = x.into();
+                self.pc += if self.V[tmpx] != nn {4} else {2};
+            },
+            0x5000 => { //5XYN - skip next instruction if VX == VY
+                if n == 0x0000 {
+                    let tmpx:usize = x.into();
+                    let tmpy:usize = y.into();
+                    self.pc += if self.V[tmpx] == self.V[tmpy] {4} else {2};    
+                }
+            },
+            0x6000 => { //6XNN - set VX to NN - CHECK
+                let tmpx:usize = x.into();
+                self.V[tmpx] = nn;
+                self.pc += 2;
+            },
+            0x7000 => { //7XNN - add NN to VX
+                let tmpx:usize = x.into();
+                self.V[tmpx] += nn;
+                self.pc += 2;
+            },
+            0x8000 => { //8XYN
+                let tmpx:usize = x.into();
+                let tmpy:usize = y.into();
+                match n {
+                    0x0000 => { //8XY0 - set VX to VY
+                        self.V[tmpx] = self.V[tmpy];
+                    },
+                    0x0001 => { //8XY1 - set VX to VX OR VY
+                        self.V[tmpx] |= self.V[tmpy];
+                    },
+                    0x0002 => { //8XY2 - set VX to VX AND VY
+                        self.V[tmpx] &= self.V[tmpy];
+                    },
+                    0x0003 => { //8XY3 - set VX to VX XOR VY
+                        self.V[tmpx] ^= self.V[tmpy];
+                    },
+                    0x0004 => { //8XY4 - add VX to VY, set VF to 1 if carry and 0 if not
+                        self.V[0xF] = if u16::from(self.V[tmpx]) + u16::from(self.V[tmpy]) > 0x0100 {1} else {0};
+                        self.V[tmpx] = self.V[tmpx] + self.V[tmpy];
+                    },
+                    0x0005 => { //8XY5 - sub VY from VX, set VF to 0 if borrow and 1 if not
+                        self.V[0xF] = if u16::from(self.V[tmpx]) < u16::from(self.V[tmpy]) {0} else {1};
+                        self.V[tmpx] = self.V[tmpx] - self.V[tmpy];
+                    },
+                    0x0006 => { //8XY6 - shift VX right 1, VF to LSB of VX before shift
+                        self.V[0xF] = self.V[tmpx] & 0x01;
+                        self.V[tmpx] >>= 1;
+                    },
+                    1_u8..=u8::MAX => todo!(),
+                }
+                self.pc += 2;
+            }
             _ => println!("Fail"),
 
         }
     }
-
     /*
-            UInt16 x:u16 = (UInt16)(Opcode & 0x0F00);
-            x >>= 8;
-            UInt16 y:u16 = (UInt16)(Opcode & 0x00F0);
-            y >>= 4;
-            UInt16 n:u16 = (UInt16)(Opcode & 0x000F);
-            UInt16 nn:u16 = (UInt16)(Opcode & 0x00FF);
-            UInt16 nnn:u16 = (UInt16)(Opcode & 0x0FFF);
-
-            switch (Opcode & 0xF000)
-            {
-                case 0x0000:
-                    {
-                        switch (nn)
-                        {
-                            case 0x00E0://clear screen - CHECK
-                                _parent._gfx.clear();
-                                V[0xF] = 1;
-                                PC += 2;
-                                break;
-                            case 0x00EE://return from sub - CHECK
-                                PC = stack[--sp];
-                                break;
-                        }
-                    }
-                    break;
-                case 0x1000://1NNN - jump to address NNN - CHECK
-                    PC = nnn;
-                    break;
-                case 0x2000://2NNN - call subroutine at NNN - CHECK
-                    stack[sp++] = PC;
-                    PC = nnn;
-                    break;
-                case 0x3000://3XNN - skip next instruction if VX == NN - CHECK
-                    {
-                        PC += (ushort)((V[x] == (Byte)nn) ? 4 : 2);
-                    }
-                    break;
-                case 0x4000://4XNN - skip next instruction if VX != NN - CHECK
-                    {
-                        PC += (ushort)((V[x] != (Byte)nn) ? 4 : 2);
-                    }
-                    break;
-                case 0x5000://5XY0 - skip next instruction if VX == VY - CHECK
-                    if (n == 0x0000)
-                    {
-                        PC += (ushort)(V[x] == V[y] ? 4 : 2);
-                    }
-                    break;
-                case 0x6000://6XNN - set VX to NN - CHECK
-                    {
-                        V[x] = (Byte)nn;
-                        PC += 2;
-                    }
-
-                    break;
-                case 0x7000://7XNN - add NN to VX - CHECK
-                    {
-                        V[x] += (Byte)nn;
-                        PC += 2;
-                    }
-                    break;
-                case 0x8000://8XYN
-                    {
-                        switch (n)
-                        {
-                            case 0x0000://8XY0 - set VX to VY - CHECK
-                                V[x] = V[y];
-                                break;
-                            case 0x0001://8XY1 - set VX to VX OR VY - CHECK
-                                V[x] |= V[y];
-                                break;
-                            case 0x0002://8XY2 - set VX to VX AND VY - CHECK
-                                V[x] &= V[y];
-                                break;
-                            case 0x0003://8XY3 - set VX to VX XOR VY - CHECK
-                                V[x] ^= V[y];
-                                break;
-                            case 0x0004://8XY4 - add VY to VX, set VF to 1 if carry and 0 if not - CHECK
-                                {
-                                    V[0xF] = (Byte)((UInt16)V[x] + (UInt16)V[y] > 0x0100 ? 1 : 0);
-                                    V[x] = (Byte)(V[x] + V[y]);
-                                }
-                                break;
-                            case 0x0005://8XY5 - sub VY from VX, set VF to 0 if borrow and 1 if there isnt - CHECK
-                                {
-                                    V[0xF] = (Byte)((V[x] < V[y]) ? 0 : 1);
-                                    V[x] = (Byte)(V[x] - V[y]);
-                                }
-                                break;
-                            case 0x0006://8XY6 - shift VX right 1, VF set to LSB of VX befor shift - CHECK
-                                {
-                                    V[0xF] = (Byte)(V[x] & 0x01);
-                                    V[x] >>= 1;
-                                }
-                                break;
                             case 0x0007://8XY7 - set VX to VY-VX, set VF to 0 if borrow and 1 if not - CHECK
                                 {
                                     V[0xF] = (Byte)(V[x] > V[y] ? 0 : 1);
