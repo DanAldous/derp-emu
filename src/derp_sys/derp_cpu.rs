@@ -146,31 +146,26 @@ impl CPU {
                         self.V[0xF] = self.V[tmpx] & 0x01;
                         self.V[tmpx] >>= 1;
                     },
+                    0x0007 => { //8XY7 - set VX to VY-VX, set VF to 0 if borrow and 1 if not
+                        self.V[0xF] = if self.V[tmpx] > self.V[tmpy] {0} else {1};
+                        self.V[tmpx] = self.V[tmpy] - self.V[tmpx];
+                    },
+                    0x000E => { //8XYE - shift VX left 1, VF set to MSB of VX before shift
+                        self.V[0xF] = self.V[tmpx] & 0xF0;
+                        self.V[tmpx] <<= 1;
+                    },
                     1_u8..=u8::MAX => todo!(),
                 }
                 self.pc += 2;
-            }
+            },
+            0x9000 => { //9XY0 - skip next instruction if VX != VY
+
+            },
             _ => println!("Fail"),
 
         }
     }
     /*
-                            case 0x0007://8XY7 - set VX to VY-VX, set VF to 0 if borrow and 1 if not - CHECK
-                                {
-                                    V[0xF] = (Byte)(V[x] > V[y] ? 0 : 1);
-                                    V[x] = (Byte)(V[y] - V[x]);
-                                }
-                                break;
-                            case 0x000E://8XYE - shift VX left 1, VF set to MSB of VX befor shift - CHECK
-                                {
-                                    V[0xF] = (Byte)(V[x] & 0xF0);
-                                    V[x] <<= 1;
-                                }
-                                break;
-                        }
-                        PC += 2;
-                        break;
-                    }
                 case 0x9000://9XY0 - skip next instruction if VX != VY - CHECK
                     if ((Opcode & 0xF00F) == 0x9000)
                     {
