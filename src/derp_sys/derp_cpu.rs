@@ -1,10 +1,11 @@
 /*
  *
  */
-
 //use super::*;
+use rand::random;
 use super::derp_ram;
 use super::derp_gfx;
+use super::derp_keypad;
 
 pub struct CPU {
     V: [u8;16],
@@ -46,7 +47,7 @@ impl CPU {
         let op2 = ram.get(self.pc+1);
         ((op1 as u16) << 8) | op2 as u16
     }
-    pub fn exec(&mut self, ram: &derp_ram::RAM, gfx: &derp_gfx::GFX) {
+    pub fn exec(&mut self, ram: &derp_ram::RAM, gfx: &mut derp_gfx::GFX) {
         //self.next_op(ram);
 
         self.debug();
@@ -82,7 +83,7 @@ impl CPU {
                     let szsp:usize = self.sp.into();
                    self.pc = self.stack[szsp]; 
                 },
-                _ => println!("Fail"),
+                _ => println!("Illegal opcode: {}", self.op),
             },
             0x1000 => { //1NNN - jump to address NNN
                 self.pc = nnn;
@@ -154,45 +155,61 @@ impl CPU {
                         self.V[0xF] = self.V[tmpx] & 0xF0;
                         self.V[tmpx] <<= 1;
                     },
-                    1_u8..=u8::MAX => todo!(),
+                    1_u8..=u8::MAX => unimplemented!("Illegal opcode: {}", self.op),
                 }
                 self.pc += 2;
             },
             0x9000 => { //9XY0 - skip next instruction if VX != VY
-
+                if self.op & 0xF00F == 0x9000 {
+                    let tmpx:usize = x.into();
+                    let tmpy:usize = y.into();
+                    if self.V[tmpx] != self.V[tmpy] {
+                        self.pc +=  4
+                    } else {
+                        self.pc +=  2;
+                    }
+                }
             },
-            _ => println!("Fail"),
+            0xA000 => {//ANNN - set I to address NNN
+                self.idx = nnn;
+                self.pc += 2;
+            },
+            0xB000 => {//BNNN jump to address NNN plus V0
+                self.pc = nnn;
+                let v:u16 = self.V[0].into();//pad that u8
+                self.pc += v;
+            },
+            0xC000 => {//CXNN - set VX to rand AND NN
+                let tmpx:usize = x.into();
+                let ran : u8 = random::<u8>().into();
+                self.V[tmpx] = ran & nn;
+                self.pc += 2;
+            },
+            0xD000 => {//DXYN - drawing
+                //Sprites stored in memory at location in index register (I), maximum 8bits wide. Wraps around the screen.
+                //If when drawn, clears a pixel, register VF is set to 1 otherwise it is zero. All drawing is XOR drawing (e.g. it toggles the screen pixels)
+                let tmpx:usize = x.into();
+                let tmpy:usize = y.into();
 
-        }
-    }
-    /*
-                case 0x9000://9XY0 - skip next instruction if VX != VY - CHECK
-                    if ((Opcode & 0xF00F) == 0x9000)
-                    {
-                        PC += (ushort)((V[x] != V[y]) ? 4 : 2);
+                let mut pixel :u8 = 0;
+                self.V[0xF] = 0;
+                for i in 0..n {
+                    let index = self.idx + <u8 as Into<u16>>::into(i);
+                    pixel = ram.get(index);
+                    for j in 0..8 {
+                        if pixel & (0x80 >> j) != 0 {
+                            if gfx.pixelAt(x + j, y + i ) == 1 {
+                                self.V[0xF] = 1;
+                            }
+                            gfx.xorPixel(x + j, y + i);
+                        }
                     }
-                    break;
-                case 0xA000://ANNN - set I to address NNN - CHECK
-                    Index = nnn;
-                    PC += 2;
-                    break;
-                case 0xB000://BNNN - jump to address NNN plus V0 - CHECK
-                    PC = nnn;
-                    PC += V[0];
-                    break;
-                case 0xC000://CXNN - set VX to rand AND NN - CHECK
-                    {
-                        Random ran = new System.Random();
-                        Byte[] rand = new Byte[1];
-                        ran.NextBytes(rand);
-                        V[x] = (Byte)(rand[0] & nn);
-                        PC += 2;
-                    }
-                    break;
+                }
+                self.pc += 2;
+                /*
                 case 0xD000://DXYN - drawing eeek - CHECK
                     {
-                        //Sprites stored in memory at location in index register (I), maximum 8bits wide. Wraps around the screen. 
-                        //If when drawn, clears a pixel, register VF is set to 1 otherwise it is zero. All drawing is XOR drawing (e.g. it toggles the screen pixels)
+
                         ushort pixel;
 
                         V[0xF] = 0;
@@ -210,43 +227,82 @@ impl CPU {
                     }
                     PC += 2;
                     break;
-                case 0xE000://EX00 - key detection
-                    {
-                        switch (nn)
-                        {
-                            case 0x009E://EX9E - skip next instruction if key in Vx is pressed - CHECK
-                                PC += (ushort)((key[V[x]] == 1) ? 4 : 2);
-                                break;
-                            case 0x00A1://EXA1 - skip next instruction if key in Vx isn't pressed - CHECK
-                                PC += (ushort)((key[V[x]] == 0) ? 4 : 2);
-                                break;
+                */
+            },
+            0xE000 => {
+                match nn { // 0xEX00 - Key detection
+                    0x009E => { //EX9E - skip next instruction if key in Vx is pressed
+                        let tmpx:usize = x.into();
+                        let tmpkey:usize = self.V[tmpx].into();
+                        if self.key[tmpkey]==1 {
+                            self.pc += 4;
+                        } else {
+                            self.pc += 2;
                         }
+                    },
+                    0x00A1 => {//EXA1 - skip next instruction if key in Vx isn't pressed
+                        let tmpx:usize = x.into();
+                        let tmpkey:usize = self.V[tmpx].into();
+                        if self.key[tmpkey]==0 {
+                            self.pc += 4;
+                        } else {
+                            self.pc += 2;
+                        }
+                    },
+                    0_u8..=u8::MAX => unimplemented!("Illegal opcode: {}", self.op),
+                }
+            },
+            0xF000 => {
+                let tmpx:usize = x.into();
+                match nn {
+                    0x0007 => {//FX07 - set Vx to value of delay timer
+                        let delay:u8 = self.delay_timer.try_into().unwrap();
+                        self.V[tmpx] = delay;
+                    },
+                    0x000A => {//FX0A - wait for key press and store in Vx
+                        todo!("implement keypad handler");
+                    },
+                    0x0015 => {//FX15 - set delay_timer to Vx
+                        let delay:u16 = self.V[tmpx].into();
+                        self.delay_timer = delay;
+                    },
+                    0x0018 => {//FX18 - set sound_timer to Vx
+                        let sound:u16 = self.V[tmpx].into();
+                        self.sound_timer = sound;
+                    },
+                    0x001E => {//FX1E - add Vx to Index
+                        let idx:u16 = self.V[tmpx].into();
+                        self.idx += idx;
+                    },
+                    0x0029 => {//FX29 - set Index to location of sprite for char in Vx - map idx to mem location
+                        let segment:u16 = 0x050;                //base address 0x050
+                        let offset:u16 = self.V[tmpx].into();   //plus character value offset
+                        let stride:u16 = 5;                     //* 5 bytes per char
+                        let idx:u16 = segment + (offset * stride);
+                        self.idx = idx;
+                    },
+                    0x0033 => {//FX33 - store BCD rep of Vx at I
+
                     }
-                    break;
+                    0_u8..=u8::MAX => unimplemented!("Illegal opcode: {}", self.op),
+                }
+                self.pc += 2;
+            }
+
+            _ => println!("Fail"),
+
+
+        }
+    }
+    /*
                 case 0xF000://Timers, Sprites, BCD oh my!
                     {
                         switch (nn)
                         {
-                            case 0x0007://FX07 - set Vx to value of delay timer - CHECK
-                                V[x] = (Byte)delay_timer;
-                                break;
                             case 0x000A://FX0A - wait for key press and store in Vx
                                 V[x] = _parent._key.nextKey();
                                 break;
-                            case 0x0015://FX15 - set delay timer to Vx - CHECK
-                                delay_timer = V[x];
-                                break;
-                            case 0x0018://FX18 - set sound timer to Vx - CHECK
-                                sound_timer = V[x];
-                                break;
-                            case 0x001E://FX1E - add Vx to Index - CHECK
-                                Index += V[x];
-                                break;
-                            case 0x0029://FX29 - set Index to location of sprite for char in Vx - map index to mem location - CHECK
-                                Index = (UInt16)(0x050 + (V[x] * 5));//base address 0x050 plus character value offset * 5 bytes per char
-                                break;
                             case 0x0033://FX33 - store BCD rep of Vx at I - CHECK
-
                                 _parent._ram.writeAt(Index,     (Byte)(V[x] / 100));
                                 _parent._ram.writeAt(Index + 1, (Byte)((V[x] / 10) % 10));
                                 _parent._ram.writeAt(Index + 2, (Byte)((V[x] % 100) % 10));

@@ -33,6 +33,19 @@ impl GFX {
         }
         self.dirty = true;
     }
+    pub fn pixelAt(&self, x: u8, y: u8) -> u8 {
+        let index :usize = (x + (64 * y)).into();
+        self.address[index]//beware the stride
+    }
+
+    pub fn xorPixel(&mut self, x: u8, y: u8) {
+        let index :usize = (x + (64 * y)).into();
+        let xor: u8 = self.address[index] ^ 1;
+        if xor != 0  {
+            self.dirty = true;
+        }
+
+    }
     /*
         public void exec()
         {
