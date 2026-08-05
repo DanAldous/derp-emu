@@ -18,7 +18,7 @@ impl RAM {
         self.address[index]
     }
 
-    fn set(&mut self, addr: u16, data: u8) {
+    pub fn set(&mut self, addr: u16, data: u8) {
         let index: usize = addr.into();
         self.address[index] = data;
     }

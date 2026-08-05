@@ -33,6 +33,9 @@ impl GFX {
         }
         self.dirty = true;
     }
+    pub fn isDirty(&self) -> bool {
+        self.dirty
+    }
     pub fn pixelAt(&self, x: u8, y: u8) -> u8 {
         let index :usize = (x + (64 * y)).into();
         self.address[index]//beware the stride

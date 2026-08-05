@@ -7,7 +7,8 @@ pub struct KEY {
 }
 
 impl KEY {
-    fn get(&self, addr: u8) -> u8 {
+    pub fn get(&self, addr: u8) -> u8 {
+        todo!("implement keypad handler");
         let index: usize = addr.into();
         //self.address[index]
         return self.address;

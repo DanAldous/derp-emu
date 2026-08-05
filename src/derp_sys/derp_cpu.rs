@@ -1,9 +1,10 @@
 /*
  *
  */
+use ggez::audio;
 //use super::*;
 use rand::random;
-use super::derp_ram;
+use super::{derp_audio, derp_ram};
 use super::derp_gfx;
 use super::derp_keypad;
 
@@ -47,7 +48,7 @@ impl CPU {
         let op2 = ram.get(self.pc+1);
         ((op1 as u16) << 8) | op2 as u16
     }
-    pub fn exec(&mut self, ram: &derp_ram::RAM, gfx: &mut derp_gfx::GFX) {
+    pub fn exec(&mut self, ram: &mut derp_ram::RAM, gfx: &mut derp_gfx::GFX, key: &mut derp_keypad::KEY, audio: &mut derp_audio::AUDIO) {
         //self.next_op(ram);
 
         self.debug();
@@ -206,28 +207,6 @@ impl CPU {
                     }
                 }
                 self.pc += 2;
-                /*
-                case 0xD000://DXYN - drawing eeek - CHECK
-                    {
-
-                        ushort pixel;
-
-                        V[0xF] = 0;
-                        for (int i = 0; i < n; i++)
-                        {
-                            pixel = _parent._ram.readAt(Index + i);
-                            for (int j = 0; j < 8; j++)
-                                if ((pixel & (0x80 >> j)) != 0)
-                                {
-                                    if (_parent._gfx.pixelAt(x + j, y + i) == 1)
-                                        V[0xF] = 1;
-                                    _parent._gfx.xorPixel(x + j, y + i);
-                                }
-                        }
-                    }
-                    PC += 2;
-                    break;
-                */
             },
             0xE000 => {
                 match nn { // 0xEX00 - Key detection
@@ -260,6 +239,10 @@ impl CPU {
                         self.V[tmpx] = delay;
                     },
                     0x000A => {//FX0A - wait for key press and store in Vx
+                        /*case 0x000A://FX0A - wait for key press and store in Vx
+                            V[x] = _parent._key.nextKey();
+                        break;*/
+                        //self.V[tmpx] = key.get();
                         todo!("implement keypad handler");
                     },
                     0x0015 => {//FX15 - set delay_timer to Vx
@@ -283,7 +266,13 @@ impl CPU {
                     },
                     0x0033 => {//FX33 - store BCD rep of Vx at I
 
-                    }
+                    },
+                    0x0055 => {//FX55 - Store V0 through Vx in memory starting at index
+                        for i in 0..tmpx {
+                            let byte:u8 = self.V[i];
+                            ram.set(self.idx+1, byte);
+                        }
+                    },
                     0_u8..=u8::MAX => unimplemented!("Illegal opcode: {}", self.op),
                 }
                 self.pc += 2;

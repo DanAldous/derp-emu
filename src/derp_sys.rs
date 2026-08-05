@@ -43,7 +43,7 @@ impl Sys {
         self.ram.load_cart(cart_size, cart_data);
 
 
-        self.cpu.exec(&self.ram, &mut self.gfx);
+        self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
 
     }
 

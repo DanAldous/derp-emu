@@ -16,7 +16,7 @@ impl CART {
         let bank = fs::read(rom).expect("Failed to load");
         let size = bank.len();
         let cart = CART{size: size,data: bank};
-        println!("Hey, we loaded a rom! size is {}", size);
+        println!("Hey, we loaded a rom! size is {} bytes.", size);
         return cart;
     }
     pub fn getSize(&self) -> usize {
