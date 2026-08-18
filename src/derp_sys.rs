@@ -44,6 +44,11 @@ impl Sys {
 
 
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
+        self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
+        self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
+        self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
+        self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
+        self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
 
     }
 

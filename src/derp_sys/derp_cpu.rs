@@ -51,15 +51,15 @@ impl CPU {
     pub fn exec(&mut self, ram: &mut derp_ram::RAM, gfx: &mut derp_gfx::GFX, key: &mut derp_keypad::KEY, audio: &mut derp_audio::AUDIO) {
         //self.next_op(ram);
 
-        self.debug();
-        println!("Init set, stepping in");
-        let op1 = ram.get(self.pc);
-        let op2 = ram.get(self.pc+1);
-        self.op = ((op1 as u16) << 8) | op2 as u16;
-        //self.op = self.next_op(ram);
-        self.debug();
-        println!("Second Instruction");
-        self.pc += 2;
+        //self.debug();
+        //println!("Init set, stepping in");
+        // let op1 = ram.get(self.pc);
+        // let op2 = ram.get(self.pc+1);
+        // self.op = ((op1 as u16) << 8) | op2 as u16;
+        // //self.op = self.next_op(ram);
+        // self.debug();
+        // println!("Second Instruction");
+        // self.pc += 2;
         
         let op1 = ram.get(self.pc);
         let op2 = ram.get(self.pc+1);

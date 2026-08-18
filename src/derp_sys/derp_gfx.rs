@@ -37,12 +37,14 @@ impl GFX {
         self.dirty
     }
     pub fn pixelAt(&self, x: u8, y: u8) -> u8 {
-        let index :usize = (x + (64 * y)).into();
+        let y_idx : u8 = y.wrapping_mul(64);//.into();
+        let index :usize = (x + y_idx).into();
         self.address[index]//beware the stride
     }
 
     pub fn xorPixel(&mut self, x: u8, y: u8) {
-        let index :usize = (x + (64 * y)).into();
+        let y_idx : u8 = y.wrapping_mul(64);//.into();
+        let index :usize = (x + y_idx).into();
         let xor: u8 = self.address[index] ^ 1;
         if xor != 0  {
             self.dirty = true;
