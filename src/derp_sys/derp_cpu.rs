@@ -273,6 +273,14 @@ impl CPU {
                             ram.set(self.idx+1, byte);
                         }
                     },
+                    0x0065 => {//FX65 - store from Index to V0 through Vx - CHECK
+                        for i in 0.. tmpx {
+                            let i_16: u16 = i as u16;
+                            let i_idx: u16 = self.idx + i_16;
+                            let byte:u8 = ram.get(i_idx);
+                            self.V[i] = byte;
+                        }
+                    },
                     0_u8..=u8::MAX => unimplemented!("Illegal opcode: {}", self.op),
                 }
                 self.pc += 2;
@@ -334,12 +342,17 @@ impl CPU {
             }*/
 
     pub fn debug(&self) {
-        println!("V     : {:#06x}", self.V[0]);//.to_string());
-        println!("op    : {:#06x}", self.op);
-        println!("idx   : {:#06x}", self.idx);
         println!("pc    : {:#06x}", self.pc);
-        println!("stack : {:#06x}", self.stack[0]);//.to_string());
-        println!("sp    : {:#06x}", self.sp);
+        println!("V     : {:#06x}\t\top    : {:#06x}", self.V[0], self.op);//.to_string());
+        println!("idx   : {:#06x}\t\tstack : {:#06x}", self.idx, self.stack[0]);
+        println!("dt    : {:#06x}\t\tst    : {:#06x}", self.delay_timer, self.sound_timer);//.to_string());
+        println!("sp    : {:#06x}\n", self.sp);
+
+        // println!("V     : {:#06x}", self.V[0]);//.to_string());
+        // println!("op    : {:#06x}", self.op);
+        // println!("idx   : {:#06x}", self.idx);
+        // println!("stack : {:#06x}", self.stack[0]);//.to_string());
+        // println!("sp    : {:#06x}", self.sp);
         /*
         let x: u16 = (UInt16)(Opcode & 0x0F00);
         x >>= 8;
