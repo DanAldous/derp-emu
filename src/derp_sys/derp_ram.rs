@@ -9,7 +9,8 @@ pub struct RAM {
 impl RAM {
     pub fn new() -> RAM {
         let mem: [u8; 4096] = [0; 4096]; 
-        let ram = RAM{address:mem};
+        let mut ram = RAM{address:mem};
+        ram.load_font();
         return ram;
     }
 
@@ -55,5 +56,12 @@ impl RAM {
             self.address[idx] = data[i];
             i+=1;
         }
+    }
+    pub fn debug(&self) {
+        let mut formatted: String = String::new();
+        for i in self.address.iter() {
+            formatted = formatted + &format!(" {:#02X}", i);
+        }
+        println!("{}", formatted);
     }
 }

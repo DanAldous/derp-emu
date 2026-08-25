@@ -43,12 +43,14 @@ impl Sys {
         self.ram.load_cart(cart_size, cart_data);
 
 
+        self.ram.debug();
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
         self.cpu.exec(&mut self.ram, &mut self.gfx, &mut self.key, &mut self.audio);
+        self.ram.debug();
 
     }
 
